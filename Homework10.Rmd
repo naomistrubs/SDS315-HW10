@@ -1,0 +1,101 @@
+---
+title: "Naomi Struble, nas4252"
+output: html_document
+date: "2024-04-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+groceries <- read.csv('groceries.csv')
+redlining <- read.csv('redlining.csv')
+library(ggplot2)
+library(dplyr)
+```
+Github link: 
+
+---
+
+### **Problem 1:**
+
+```{r, echo=FALSE, results='hide'}
+red_reg <- lm(policies ~ minority + fire + age + income, data = redlining)
+summary(red_reg)
+```
+
+**Question:**  The question being analyzed is whether there is an association between the number of fair policies and the racial/ethnic composition of a ZIP code, adjusting for the fire, age, and income variables.
+
+**Approach:** To answer this question, I used multiple linear regression analysis. I then included the number of fair policies as the dependent variable and the racial/ethnic composition, fire variable, age variable, and income variable as independent variables in the regression model.
+
+**Results:** There are a few key findings from the multiple linear regression analysis. First, when analyzing the association with ethnic/racial composition, The racial/ethnic composition of a ZIP code showed a statistically significant association with the number of fair policies because the p value is  0.00611. Additionally, for every one-unit increase in racial/ethnic composition, there was an increase of 0.008359 fair policies. Second, when analyzing the association with fire incidents, the p-value is 0.01833, which similarly demonstrates the statistically significant association. The estimated coefficient suggests that for each unit increase in fire incidents, there was an expected increase of approximately 0.021739 fair policies. The next variable analyzed is age. However, since the p value is above .05 (0.14323), there is no statistically significant association. Similarly, the income association is also not significant, for the p value found was 0.67863. Due to these findings, there was no significant association found between income and age regarding fair policies.  
+
+**Conclusion:** In conclusion, these results suggest that factors such as racial/ethnic composition and fire incidents may influence the implementation of fair policies in a ZIP code. Stakeholders interested in promoting equity and fairness in insurance practices should consider these findings when designing policies and interventions. 
+
+
+
+---
+
+### **Problem 2:**
+#### Part A: 
+
+```{r, echo=FALSE}
+avg_price <- groceries %>%
+  group_by(Store) %>%
+  summarise(average_price = mean(Price))
+
+ggplot(avg_price, aes(x = Store, y = average_price)) + geom_bar(stat = "identity", color = 'black', fill= 'magenta4') + coord_flip() + labs(title = "Average Price of Products Across Different Stores", x = "Store", y = "Average Price(in dollars)") + theme_classic()
+```
+
+The bar graph above demonstrates the average prices of various products across different stores in Houston, Austin, and Fort Worth. Each bar represents the average price of products sold at each store. The graph allows us to compare the pricing patterns throughout the retainers in these regions. 
+
+#### Part B:
+
+```{r, echo=FALSE}
+product_stores <- groceries %>%
+  group_by(Product) %>%
+  summarise(num_stores = n_distinct(Store))
+
+ggplot(product_stores, aes(x = Product, y = num_stores)) + geom_bar(stat = "identity", color = "black", fill = "skyblue") + coord_flip() + labs(title = "Number of Stores Selling Each Product", x = "Product", y = "Number of Stores") + theme_classic() + theme(axis.text.x = element_text(angle = 90, hjust = 1), axis.text.y = element_text(size = 7))
+```
+
+This bar graph illustrates the number of stores selling each product, showcasing the variation in product availability across different retail outlets. Notably, the y-axis represents the count of stores, while each bar corresponds to a specific product. Products like eggs and milk, commonly found in most stores, reach a maximum count of 16, reflecting their widespread availability. Conversely, products with lower counts indicate a narrower distribution among stores, highlighting the diverse product offerings in the retail landscape.
+
+#### Part C: 
+
+```{r, echo=FALSE}
+type_v_products <- lm(Price ~ Product + Type, data = groceries)
+conf_int <- confint(type_v_products, level = 0.95)
+conf_int_rounded <- round(conf_int, 2)
+head(conf_int_rounded, 10)
+```
+
+#### Part D:
+
+```{r, echo=FALSE, results='hide'}
+store_v_products <- lm(Price ~ Product + Store, data = groceries)
+coefficients <- coef(store_v_products)
+print(coefficients)
+```
+
+The two stores that charge the lowest prices when comparing the same product are Kroger Fresh Fare and Walmart. The two stores that seem to charge the highest prices are Walgreens and Whole Foods. 
+
+#### Part E:
+
+The coefficient for Central Market is -.5734, while the coefficient for HEB is -.6460. Due to these coefficients, we can conclude that Central Market does charge a slightly higher price for the same product, compared to HEB.Although this demonstrates that there is a difference, there are more significant differences between other stores. For instance Kroger is at a -.7003, while Walgreens is at .215. Through these comparisons, that of Central Market and Whole foods seems less significant. 
+
+#### Part F: 
+
+```{r, echo=FALSE, results='hide'}
+groceries <- groceries %>%
+  mutate(Income10K = Income / 10000)
+
+model <- lm(Price ~ Product + Income10K, data = groceries)
+coefficients <- coef(model)
+print(coefficients)
+
+sd_income <- sd(groceries$Income10K)
+
+standardized_coefficient <- coefficients["Income10K"] * (sd(groceries$Price) / sd_income)
+print(standardized_coefficient)
+```
+
+Since the coefficient for income is negative, it suggests that consumers in poorer ZIP codes pay less for the same product, on average. Additionally, through the standardized income coefficient one can conclude that a one-standard deviation increase in the income of a ZIP code seems to be associated with a -.006 standard-deviation change in the price that consumers in that ZIP code expect to pay for the same product.
